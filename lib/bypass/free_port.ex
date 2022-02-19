@@ -35,7 +35,7 @@ defmodule Bypass.FreePort do
     do: {state, {:error, :too_many_attempts}}
 
   defp find_free_port(state, owner, ref, attempt) do
-    case :ranch_tcp.listen(ip: Utils.listen_ip(), port: 0) do
+    case :ranch_tcp.listen(Utils.so_reuseport() ++ [ip: Utils.listen_ip(), port: 0]) do
       {:ok, socket} ->
         {:ok, port} = :inet.port(socket)
         true = :erlang.port_close(socket)

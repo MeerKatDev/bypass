@@ -38,9 +38,10 @@ defmodule Bypass.FreePort do
     case :ranch_tcp.listen(Utils.so_reuseport() ++ [ip: Utils.listen_ip(), port: 0]) do
       {:ok, socket} ->
         {:ok, port} = :inet.port(socket)
-        true = :erlang.port_close(socket)
 
         if MapSet.member?(state.ports, port) do
+          true = :erlang.port_close(socket)
+
           find_free_port(state, owner, ref, attempt + 1)
         else
           state = %{
@@ -49,7 +50,7 @@ defmodule Bypass.FreePort do
               owners: Map.put_new(state.owners, {owner, ref}, port)
           }
 
-          {state, {:ok, port}}
+          {state, {:ok, socket}}
         end
 
       {:error, reason} ->

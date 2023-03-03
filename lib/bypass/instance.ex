@@ -390,9 +390,12 @@ defmodule Bypass.Instance do
         end
 
       if length(exit_callers) > 0 do
-        {result, _updated_state} = do_exit(state)
-        Enum.each(exit_callers, &GenServer.reply(&1, result))
-        GenServer.stop(:normal)
+        case do_exit(state) do
+          {:exit, {:exit, _reason, []}} ->
+            :ok
+          {result, _updated_state} ->
+            Enum.each(exit_callers, &GenServer.reply(&1, result))
+        end
       end
 
       down_reset || state
